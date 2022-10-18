@@ -5,12 +5,32 @@
 
 use std::{collections::HashMap, fs, path::Path};
 
+use clap::Parser;
+
 use rslint_parser::{
     ast::{Literal, LiteralProp},
     parse_module, AstNode, SyntaxKind, SyntaxNodeExt,
 };
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Destination folder to copy the files to
+    #[arg(short, long, default_value = "./export_langs")]
+    destination: String,
+
+    /// Reverse source and destination folders
+    #[arg(short, long)]
+    reverse: bool,
+}
+
 fn main() {
+    let args = Args::parse();
+    println!(
+        "destination: {}, reverse: {}",
+        args.destination, args.reverse
+    );
+
     // Check folder contains transloco.config.js
     let config = std::fs::read_to_string("transloco.config.js")
         .expect("transloco.config.js file not found in current directory");
@@ -88,14 +108,22 @@ fn main() {
                 path.push_str(".json");
                 if Path::new(&path).exists() {
                     println!("Found file {}", path);
-                    let mut dest = "export_langs".to_owned();
+                    let mut dest = args.destination.to_owned();
                     dest.push_str("/");
                     dest.push_str(&k);
                     fs::create_dir_all(&dest).expect("Error creating directory");
                     dest.push_str("/");
                     dest.push_str(&lang);
                     dest.push_str(".json");
-                    fs::copy(path, dest).expect("Something went wrong copying the file");
+                    if args.reverse {
+                        println!("Source file: {}", dest);
+                        println!("Target file: {}", path);
+                        fs::copy(dest, path).expect("Something went wrong copying the file");
+                    } else {
+                        println!("Source file: {}", path);
+                        println!("Target file: {}", dest);
+                        fs::copy(path, dest).expect("Something went wrong copying the file");
+                    }
                 } else {
                     println!("Missing language {}", path);
                 }
