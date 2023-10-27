@@ -106,24 +106,21 @@ fn main() {
                 path.push_str("/");
                 path.push_str(&lang);
                 path.push_str(".json");
-                if Path::new(&path).exists() {
-                    println!("Found file {}", path);
-                    let mut dest = args.destination.to_owned();
-                    dest.push_str("/");
-                    dest.push_str(&k);
-                    fs::create_dir_all(&dest).expect("Error creating directory");
-                    dest.push_str("/");
-                    dest.push_str(&lang);
-                    dest.push_str(".json");
-                    if args.reverse {
-                        println!("Source file: {}", dest);
-                        println!("Target file: {}", path);
-                        fs::copy(dest, path).expect("Something went wrong copying the file");
-                    } else {
-                        println!("Source file: {}", path);
-                        println!("Target file: {}", dest);
-                        fs::copy(path, dest).expect("Something went wrong copying the file");
-                    }
+                let mut dest = args.destination.to_owned();
+                dest.push_str("/");
+                dest.push_str(&k);
+                fs::create_dir_all(&dest).expect("Error creating directory");
+                dest.push_str("/");
+                dest.push_str(&lang);
+                dest.push_str(".json");
+                if args.reverse && Path::new(&dest).exists() {
+                    println!("Source file: {}", dest);
+                    println!("Target file: {}", path);
+                    fs::copy(dest, path).expect("Something went wrong copying the file");
+                } else if Path::new(&path).exists() {
+                    println!("Source file: {}", path);
+                    println!("Target file: {}", dest);
+                    fs::copy(path, dest).expect("Something went wrong copying the file");
                 } else {
                     println!("Missing language {}", path);
                 }
